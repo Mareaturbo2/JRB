@@ -1,78 +1,42 @@
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import '../App.css'
+import { useState } from "react";
+import { criarConta } from "../utils/api";
 
-function Cadastro() {
-  const navigate = useNavigate()
-  const [nome, setNome] = useState('')
-  const [cpf, setCpf] = useState('')
-  const [senha, setSenha] = useState('')
+export default function Cadastro() {
+  const [form, setForm] = useState({ cpf: "", titular: "", senha: "1234", tipo: "corrente", saldoInicial: 0 });
+  const [msg, setMsg] = useState("");
+  const [erro, setErro] = useState("");
 
-  const handleCadastro = async () => {
-    if (!nome || !cpf || !senha) {
-      alert('Preencha todos os campos!')
-      return
-    }
+  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    setMsg(""); setErro("");
     try {
-      const response = await fetch('http://localhost:8080/api/contas', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          titular: nome,
-          cpf,
-          senha,
-          saldoInicial: 0.0,
-          tipo: 'corrente',
-        }),
-      })
-
-      if (response.ok) {
-        alert('Conta criada com sucesso!')
-        navigate('/')
-      } else {
-        const erro = await response.json()
-        alert(erro)
-      }
-    } catch (error) {
-      alert('Erro ao conectar com o servidor!')
-      console.error(error)
+      // tipo: "corrente" ou "poupanca"
+      const payload = { ...form, saldoInicial: Number(form.saldoInicial) || 0 };
+      const res = await criarConta(payload);
+      setMsg(res?.mensagem || "Conta criada com sucesso!");
+    } catch (e) {
+      setErro(e.message);
     }
-  }
+  };
 
   return (
-    <div className="container">
-      <h1 className="title">Cadastro</h1>
-      <p className="subtitle">Crie sua conta</p>
-
-      <div className="form">
-        <input
-          type="text"
-          placeholder="Nome completo"
-          value={nome}
-          onChange={(e) => setNome(e.target.value)}
-        />
-        <input
-          type="text"
-          placeholder="CPF"
-          value={cpf}
-          onChange={(e) => setCpf(e.target.value)}
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-        />
-        <button className="btn cadastro" onClick={handleCadastro}>
-          Cadastrar
-        </button>
-        <button className="btn login" onClick={() => navigate('/')}>
-          Voltar
-        </button>
-      </div>
+    <div className="card">
+      <h2>Abrir Conta</h2>
+      <form onSubmit={onSubmit} className="form">
+        <input name="cpf" placeholder="CPF" value={form.cpf} onChange={onChange} required />
+        <input name="titular" placeholder="Titular" value={form.titular} onChange={onChange} required />
+        <input name="senha" placeholder="Senha" value={form.senha} onChange={onChange} />
+        <select name="tipo" value={form.tipo} onChange={onChange}>
+          <option value="corrente">Corrente</option>
+          <option value="poupanca">Poupança</option>
+        </select>
+        <input name="saldoInicial" type="number" step="0.01" placeholder="Saldo Inicial" value={form.saldoInicial} onChange={onChange} />
+        <button type="submit">Criar Conta</button>
+      </form>
+      {msg && <p className="ok">{msg}</p>}
+      {erro && <p className="err">{erro}</p>}
     </div>
-  )
+  );
 }
-
-export default Cadastro

@@ -1,0 +1,161 @@
+{
+  "info": {
+    "name": "JRB Bank - Fluxo Completo",
+    "_postman_id": "c1f3c8a4-9d42-4f8e-935e-2025-10-19T00:00:00Z",
+    "description": "Fluxo completo de testes da API JRB Bank (corrente e poupança)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1 Criar Conta Corrente",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpf\": \"10101010\",\n  \"titular\": \"João Corrente\",\n  \"senha\": \"1234\",\n  \"tipo\": \"corrente\"\n}"
+        }
+      }
+    },
+    {
+      "name": "2 Criar Conta Poupança",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpf\": \"20202020\",\n  \"titular\": \"Maria Poupança\",\n  \"senha\": \"5678\",\n  \"tipo\": \"poupanca\"\n}"
+        }
+      }
+    },
+    {
+      "name": "3 Depositar",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/deposito", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "deposito"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 500 }" }
+      }
+    },
+    {
+      "name": "4 Consultar Saldo Corrente",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/saldo", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "saldo"] }
+      }
+    },
+    {
+      "name": "5 Sacar",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/saque", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "saque"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 100 }" }
+      }
+    },
+    {
+      "name": "6 Transferência entre contas",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/transferir", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "transferir"] },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"cpfOrigem\": \"10101010\",\n  \"cpfDestino\": \"20202020\",\n  \"valor\": 50\n}"
+        }
+      }
+    },
+    {
+      "name": "7 Pagar Conta/Boleto",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/pagamento", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "pagamento"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 30, \"codigo\": \"1234567890\" }" }
+      }
+    },
+    {
+      "name": "8 Solicitar Cartão de Crédito",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/cartoes/credito", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "cartoes", "credito"] },
+        "body": { "mode": "raw", "raw": "{ \"limite\": 2000 }" }
+      }
+    },
+    {
+      "name": "9 Solicitar Cartão de Débito",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/cartoes/debito", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "cartoes", "debito"] }
+      }
+    },
+    {
+      "name": "10 Compra com Cartão de Débito",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/cartoes/debito/compra", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "cartoes", "debito", "compra"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 25, \"descricao\": \"Compra Débito: Mercado\" }" }
+      }
+    },
+    {
+      "name": "11 Compra com Cartão de Crédito",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/cartoes/credito/compra", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "cartoes", "credito", "compra"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 120, \"descricao\": \"Compra Crédito: Loja ABC\" }" }
+      }
+    },
+    {
+      "name": "12 Ver Fatura Cartão de Crédito",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/cartoes/credito/info", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "cartoes", "credito", "info"] }
+      }
+    },
+    {
+      "name": "13 Pagar Fatura Cartão de Crédito",
+      "request": {
+        "method": "POST",
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/cartoes/pagar-fatura", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "cartoes", "pagar-fatura"] }
+      }
+    },
+    {
+      "name": "14 Investir na Poupança",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/20202020/poupanca/investir", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "20202020", "poupanca", "investir"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 50 }" }
+      }
+    },
+    {
+      "name": "15 Resgatar da Poupança",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "http://localhost:8080/api/contas/20202020/poupanca/resgatar", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "20202020", "poupanca", "resgatar"] },
+        "body": { "mode": "raw", "raw": "{ \"valor\": 50 }" }
+      }
+    },
+    {
+      "name": "16 Extrato PDF",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/extrato/pdf", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "extrato", "pdf"] }
+      }
+    },
+    {
+      "name": "17 Encerrar Conta",
+      "request": {
+        "method": "PUT",
+        "url": { "raw": "http://localhost:8080/api/contas/10101010/encerrar", "protocol": "http", "host": ["localhost"], "port": "8080", "path": ["api", "contas", "10101010", "encerrar"] }
+      }
+    }
+  ]
+}

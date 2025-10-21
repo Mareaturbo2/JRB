@@ -34,8 +34,7 @@ public class MenuPrincipalView {
             }
         }
     }
-
-    private void acessarConta() {
+private void acessarConta() {
     System.out.println("\n=== ACESSO À CONTA ===");
     System.out.print("CPF: ");
     String cpf = sc.nextLine();
@@ -51,11 +50,46 @@ public class MenuPrincipalView {
         return;
     }
 
+    if (conta.estaBloqueada()) {
+        System.out.println("Conta temporariamente bloqueada.");
+        System.out.print("Deseja tentar desbloquear informando a senha? (s/n): ");
+        String tentar = sc.nextLine().trim();
+        if (!tentar.equalsIgnoreCase("s")) {
+            return;
+        }
+        System.out.print("Senha: ");
+        String senhaTentativa = sc.nextLine();
+        boolean senhaCorreta = bank.validarSenha(conta, senhaTentativa);
+        if (senhaCorreta) {
+            conta.desbloquear();
+            bank.salvar();
+            System.out.println("Senha correta. Conta desbloqueada. Login realizado com sucesso!");
+            new MenuContaView(bank, cpf, conta).exibir();
+            return;
+        } else {
+            conta.registrarTentativaSenha(false);
+            bank.salvar();
+            if (conta.estaBloqueada()) {
+                System.out.println("Senha incorreta. Conta novamente bloqueada.");
+            } else {
+                System.out.println("Senha incorreta.");
+            }
+            return;
+        }
+    }
+
     System.out.print("Senha: ");
     String senha = sc.nextLine();
 
-    if (!bank.validarSenha(conta, senha)) {
+    boolean senhaCorreta = bank.validarSenha(conta, senha);
+    conta.registrarTentativaSenha(senhaCorreta);
+    bank.salvar();
+
+    if (!senhaCorreta) {
         System.out.println("Senha incorreta.");
+        if (conta.estaBloqueada()) {
+            System.out.println("Conta temporariamente bloqueada. Tente novamente mais tarde.");
+        }
         return;
     }
 

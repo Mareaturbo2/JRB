@@ -1,57 +1,36 @@
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import '../App.css'
+import { useState } from "react";
+import { getCpfLogado, depositar } from "../utils/api";
 
-function Deposito() {
-  const navigate = useNavigate()
-  const usuario = JSON.parse(localStorage.getItem('usuario'))
-  const [valor, setValor] = useState('')
+export default function Deposito() {
+  const [valor, setValor] = useState("");
+  const [mensagem, setMensagem] = useState("");
+ const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
+  const cpf = usuario.cpf;
+
 
   const handleDeposito = async () => {
-    if (!valor || valor <= 0) {
-      alert('Informe um valor válido!')
-      return
-    }
-
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/contas/${usuario.cpf}/deposito?valor=${valor}`,
-        { method: 'PUT' }
-      )
-
-      if (response.ok) {
-        alert('Depósito realizado com sucesso!')
-        navigate('/menu')
-      } else {
-        const erro = await response.json()
-        alert(erro)
-      }
-    } catch (error) {
-      console.error(error)
-      alert('Erro ao conectar com o servidor')
+      const resp = await depositar(cpf, parseFloat(valor));
+      setMensagem(resp.mensagem || "Depósito realizado com sucesso!");
+      setValor("");
+    } catch (erro) {
+      setMensagem("Erro no depósito: " + erro.message);
     }
-  }
+  };
 
   return (
-    <div className="page">
-      <div className="card">
-        <h2>Depósito</h2>
-        <p>Informe o valor que deseja depositar:</p>
-        <input
-          type="number"
-          placeholder="Ex: 100.00"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-        />
-        <button className="btn cadastro" onClick={handleDeposito}>
-          Confirmar Depósito
-        </button>
-        <button className="btn login" onClick={() => navigate('/menu')}>
-          Voltar ao Menu
-        </button>
-      </div>
+    <div style={{ color: "white", textAlign: "center", marginTop: "100px" }}>
+      <h2>Depósito</h2>
+      <input
+        type="number"
+        placeholder="Valor (R$)"
+        value={valor}
+        onChange={(e) => setValor(e.target.value)}
+        style={{ marginRight: "10px" }}
+      />
+      <button onClick={handleDeposito}>Depositar</button>
+      <p>{mensagem}</p>
+      <a href="/menu" style={{ color: "#6f6fff" }}>Voltar</a>
     </div>
-  )
+  );
 }
-
-export default Deposito

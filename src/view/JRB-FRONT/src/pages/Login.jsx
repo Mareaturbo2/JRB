@@ -1,67 +1,64 @@
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import '../App.css'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-function Login() {
-  const navigate = useNavigate()
-  const [cpf, setCpf] = useState('')
-  const [senha, setSenha] = useState('')
+export default function Login() {
+  const [cpf, setCpf] = useState("");
+  const [senha, setSenha] = useState("");
+  const [mensagem, setMensagem] = useState("");
+  const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    if (!cpf || !senha) {
-      alert('Preencha todos os campos!')
-      return
-    }
+  async function handleLogin(e) {
+    e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:8080/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("http://localhost:8080/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ cpf, senha }),
-      })
+      });
 
-      if (response.ok) {
-        const conta = await response.json()
-        localStorage.setItem('usuario', JSON.stringify({ ...conta, cpf }))
-        alert('Login realizado com sucesso!')
-        navigate('/menu')
-      } else {
-        const erro = await response.json()
-        alert(erro)
+      if (!response.ok) {
+        const erro = await response.json();
+        setMensagem("❌ " + (erro.erro || "Falha ao fazer login."));
+        return;
       }
-    } catch (error) {
-      alert('Erro ao conectar com o servidor!')
-      console.error(error)
+
+      const dados = await response.json();
+
+      //salva todos os dados da conta no localStorage
+      localStorage.setItem("usuario", JSON.stringify({ ...dados, cpf }));
+
+
+      setMensagem("✅ Login realizado com sucesso!");
+      setTimeout(() => navigate("/menu"), 1000);
+
+    } catch (err) {
+      console.error("Erro ao logar:", err);
+      setMensagem("❌ Erro de conexão com o servidor.");
     }
   }
 
   return (
-    <div className="container">
-      <h1 className="title">Login</h1>
-      <p className="subtitle">Acesse sua conta</p>
-
-      <div className="form">
+    <div className="login-container">
+      <h2>Login</h2>
+      <form onSubmit={handleLogin}>
         <input
           type="text"
           placeholder="CPF"
           value={cpf}
           onChange={(e) => setCpf(e.target.value)}
+          required
         />
         <input
           type="password"
           placeholder="Senha"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
+          required
         />
-        <button className="btn cadastro" onClick={handleLogin}>
-          Entrar
-        </button>
-        <button className="btn login" onClick={() => navigate('/')}>
-          Voltar
-        </button>
-      </div>
+        <button type="submit">Entrar</button>
+      </form>
+      <p>{mensagem}</p>
     </div>
-  )
+  );
 }
-
-export default Login

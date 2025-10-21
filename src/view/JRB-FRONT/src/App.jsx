@@ -1,24 +1,12 @@
-import './App.css'
-import { useNavigate } from 'react-router-dom'
-
-function App() {
-  const navigate = useNavigate()
-
+export default function App() {
   return (
     <div className="container">
-      <h1 className="title">JRB</h1>
-      <p className="subtitle">O Dinheiro que voce nunca viu</p>
-
+      <h1 className="title">JRB Bank</h1>
+      <p className="subtitle">Bem-vindo! Acesse ou crie sua conta.</p>
       <div className="buttons">
-        <button className="btn login" onClick={() => navigate('/login')}>
-          Login
-        </button>
-        <button className="btn cadastro" onClick={() => navigate('/cadastro')}>
-          Cadastro
-        </button>
+        <a className="btn login" href="/login">Login</a>
+        <a className="btn cadastro" href="/cadastro">Cadastro</a>
       </div>
     </div>
-  )
+  );
 }
-
-export default App

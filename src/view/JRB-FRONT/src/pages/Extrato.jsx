@@ -1,83 +1,125 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import "../App.css";
+import { getCpfLogado, extratoJson } from "../utils/api";
 
-function Extrato() {
-  const navigate = useNavigate();
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const [movimentacoes, setMovimentacoes] = useState([]);
+export default function Extrato() {
+  const [extrato, setExtrato] = useState([]);
+  const [erro, setErro] = useState("");
+  const [inicio, setInicio] = useState("");
+  const [fim, setFim] = useState("");
+  const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
+const cpf = usuario.cpf;
+
+
+  const carregarExtrato = async (i = null, f = null) => {
+    try {
+      let url = `/contas/${cpf}/extrato`;
+      if (i && f) {
+        url += `?inicio=${i}&fim=${f}`;
+      }
+
+      const resp = await fetch(`http://localhost:8080/api${url}`);
+      const dados = await resp.json();
+
+      if (!dados || !Array.isArray(dados.movimentacoes)) {
+        setErro("Não há movimentações registradas.");
+        setExtrato([]);
+        return;
+      }
+
+      const filtrado = dados.movimentacoes.filter(
+        (item) => item && item.tipo && item.valor !== undefined
+      );
+
+      setExtrato(filtrado);
+      setErro("");
+    } catch (err) {
+      setErro("Erro ao carregar extrato: " + err.message);
+    }
+  };
 
   useEffect(() => {
-    const buscarExtrato = async () => {
-      try {
-        const response = await fetch(`http://localhost:8080/api/contas/${usuario.cpf}/extrato`);
-        if (response.ok) {
-          const data = await response.json();
-          setMovimentacoes(data);
-        } else {
-          alert("Erro ao carregar extrato.");
-        }
-      } catch (error) {
-        console.error(error);
-        alert("Erro ao conectar com o servidor.");
-      }
-    };
+    carregarExtrato();
+  }, []);
 
-    buscarExtrato();
-  }, [usuario.cpf]);
+  const baixarPDF = () => {
+    window.open(`http://localhost:8080/api/contas/${cpf}/extrato/pdf`, "_blank");
+  };
 
-  // 👇 Função para abrir o PDF
-  const exportarPDF = () => {
-    window.open(`http://localhost:8080/api/contas/${usuario.cpf}/extrato/pdf`, "_blank");
+  const aplicarFiltro = (e) => {
+    e.preventDefault();
+    if (inicio && fim) {
+      carregarExtrato(inicio, fim);
+    }
   };
 
   return (
-    <div className="page">
-      <div className="card">
-        <h2>Extrato Bancário</h2>
+    <div style={{ color: "white", textAlign: "center", marginTop: "50px" }}>
+      <h2>Extrato da Conta</h2>
 
-        {movimentacoes.length === 0 ? (
-          <p>Nenhuma movimentação encontrada.</p>
-        ) : (
-          <>
-            <table className="extrato-table">
-              <thead>
-                <tr>
-                  <th>Data</th>
-                  <th>Tipo</th>
-                  <th>Valor (R$)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {movimentacoes.map((mov, index) => (
-                  <tr key={index}>
-                    <td>{mov.dataHora}</td>
-                    <td>{mov.tipo}</td>
-                    <td
-                      style={{
-                        color: mov.valor < 0 ? "red" : "green",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {mov.valor.toFixed(2)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <form
+        onSubmit={aplicarFiltro}
+        style={{ marginBottom: "20px", display: "flex", justifyContent: "center", gap: "10px" }}
+      >
+        <div>
+          <label>Início:</label>
+          <input
+            type="date"
+            value={inicio}
+            onChange={(e) => setInicio(e.target.value)}
+            style={{ marginLeft: "5px" }}
+          />
+        </div>
+        <div>
+          <label>Fim:</label>
+          <input
+            type="date"
+            value={fim}
+            onChange={(e) => setFim(e.target.value)}
+            style={{ marginLeft: "5px" }}
+          />
+        </div>
+        <button type="submit">Filtrar</button>
+      </form>
 
-            <button className="btn cadastro" onClick={exportarPDF}>
-              Exportar em PDF
-            </button>
-          </>
-        )}
+      {erro && <p>{erro}</p>}
 
-        <button className="btn login" onClick={() => navigate("/menu")}>
-          Voltar ao Menu
-        </button>
+      {!erro && extrato.length > 0 && (
+        <table
+          style={{
+            margin: "20px auto",
+            borderCollapse: "collapse",
+            color: "white",
+            width: "70%",
+          }}
+        >
+          <thead>
+            <tr style={{ borderBottom: "2px solid white" }}>
+              <th>Data</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            {extrato.map((item, index) => (
+              <tr key={index} style={{ borderBottom: "1px solid gray" }}>
+                <td>{item.dataHora}</td>
+                <td>{item.tipo}</td>
+                <td style={{ color: item.valor < 0 ? "red" : "lightgreen" }}>
+                  R$ {item.valor.toFixed(2)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <div style={{ marginTop: "20px" }}>
+        <button onClick={baixarPDF}>📄 Exportar PDF</button>
       </div>
+
+      <a href="/menu" style={{ color: "#6f6fff", display: "block", marginTop: "20px" }}>
+        Voltar
+      </a>
     </div>
   );
 }
-
-export default Extrato;
