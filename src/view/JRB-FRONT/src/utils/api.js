@@ -59,7 +59,7 @@ export async function pagarBoleto(cpf, codigo, valor, dataVencimento = null) {
 }
 
 
-// 🔹 Solicitar cartão de crédito
+//solicitar cartão de crédito
 export async function solicitarCartaoCredito(cpf, limite) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/cartoes/credito`, {
     method: "POST",
@@ -69,7 +69,7 @@ export async function solicitarCartaoCredito(cpf, limite) {
   return resp.json();
 }
 
-// 🔹 Solicitar cartão de débito
+//solicitar cartão de débito
 export async function solicitarCartaoDebito(cpf) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/cartoes/debito`, {
     method: "POST",
@@ -117,7 +117,7 @@ export async function login(cpf, senha) {
     body: JSON.stringify({ cpf, senha }),
   });
 
-  // O back retorna texto puro, então pegamos como texto
+  
   const text = await resp.text();
 
   if (!resp.ok) {
@@ -135,7 +135,7 @@ export async function extratoJson(cpf) {
 }
 
 
-// 💸 Pagar conta ou boleto
+//pagar conta ou boleto
 export async function pagar(cpf, valor, descricao) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/pagamento`, {
     method: "POST",
@@ -149,7 +149,7 @@ export async function pagar(cpf, valor, descricao) {
 
   return await resp.json();
 }
-// 💳 Compra com Cartão de Crédito
+//compra com cartão de credito
 export async function compraCredito(cpf, valor, descricao) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/cartoes/credito/compra`, {
     method: "POST",
@@ -158,7 +158,7 @@ export async function compraCredito(cpf, valor, descricao) {
   });
   return resp.json();
 }
-// 💳 Compra com Cartão de Débito
+//compra com cartão de debito
 export async function compraDebito(cpf, valor, descricao) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/cartoes/debito/compra`, {
     method: "POST",
@@ -167,7 +167,7 @@ export async function compraDebito(cpf, valor, descricao) {
   });
   return resp.json();
 }
-// 💳 Pagar fatura do cartão de crédito
+//pagar fatura do cartão de credito
 export async function pagarFatura(cpf) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/cartoes/pagar-fatura`, {
     method: "POST",
@@ -175,7 +175,7 @@ export async function pagarFatura(cpf) {
   });
   return resp.json();
 }
-// 🏦 Encerrar conta
+//encerrar conta
 export async function encerrarConta(cpf) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/encerrar`, {
     method: "PUT",
@@ -187,9 +187,9 @@ export async function encerrarConta(cpf) {
 
   return msg;
 }
-// ==========================================================
-// 🔹 Função utilitária para pegar o CPF do usuário logado
-// ==========================================================
+
+//função  para pegar o cpf do usuario logado
+
 export function getCpfLogado() {
   try {
     const dados = JSON.parse(localStorage.getItem("usuario"));
@@ -200,7 +200,7 @@ export function getCpfLogado() {
 }
 
 
-// 💳 Obter informações do cartão de crédito
+//obter informações do cartão de credito
 export async function obterInfoCartaoCredito(cpf) {
   const resp = await fetch(`${API_URL}/contas/${cpf}/cartoes/credito/info`);
   if (!resp.ok) {
@@ -210,12 +210,12 @@ export async function obterInfoCartaoCredito(cpf) {
   return await resp.json();
 }
 
-// 💳 Baixar fatura PDF automaticamente
+//baixar fatura pdf automaticamente
 export async function baixarFaturaPDF(cpf, numeroCartao) {
   window.open(`${API_URL}/contas/${cpf}/cartoes/${numeroCartao}/fatura/pdf`, "_blank");
 }
 
-// 🔍 Obter todos os detalhes da conta (tipo, saldo, poupança etc.)
+//obter todos os detalhes da conta (tipo, saldo, poupança...)
 export async function detalhesConta(cpf) {
   const resp = await fetch(`${API_URL}/contas/${cpf}`);
   if (!resp.ok) {

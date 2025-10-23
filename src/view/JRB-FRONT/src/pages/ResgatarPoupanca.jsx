@@ -1,105 +1,123 @@
-import { useEffect, useState } from "react";
-import { detalhesConta, resgatarPoupanca } from "../utils/api";
-import { getCpfLogado } from "../utils/auth";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { resgatarPoupanca, detalhesConta } from "../utils/api";
+import "../App.css";
 
 export default function ResgatarPoupanca() {
   const navigate = useNavigate();
-  const [investimento, setInvestimento] = useState(0);
+  const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
+  const cpf = usuario.cpf;
+
   const [valor, setValor] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [erro, setErro] = useState("");
-  const cpf = getCpfLogado();
+  const [disponivel, setDisponivel] = useState(0.0);
+  const [carregando, setCarregando] = useState(true);
 
+  //impede acesso direto se não for conta poupança
   useEffect(() => {
-    if (!cpf) {
-      navigate("/login");
-      return;
+    const tipoNormalizado = String(usuario.tipo || "")
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase();
+    if (!tipoNormalizado.includes("poupanca")) {
+      navigate("/menu", { replace: true });
     }
+  }, [usuario, navigate]);
 
+  //busca valor investido atual
+  useEffect(() => {
     async function carregarInvestimento() {
       try {
-        const dados = await detalhesConta(cpf);
-        
-        const invest =
-          typeof dados.investimento === "number"
-            ? dados.investimento
-            : dados.poupanca?.investimento || 0;
-        setInvestimento(invest);
-      } catch (err) {
-        setErro("Erro ao buscar informações da poupança.");
+        const conta = await detalhesConta(cpf);
+        const investimento =
+          conta.poupanca?.investimento ??
+          conta.investimento ??
+          0;
+        setDisponivel(parseFloat(investimento.toFixed(2)));
+      } catch (e) {
+        console.error("Erro ao buscar saldo da poupança:", e);
+      } finally {
+        setCarregando(false);
       }
     }
-
     carregarInvestimento();
-  }, [cpf, navigate]);
+  }, [cpf]);
 
-  async function resgatar() {
-    setErro("");
+  //resgatar
+  const handleResgatar = async (e) => {
+    e.preventDefault();
     setMensagem("");
 
-    if (!valor || isNaN(valor) || valor <= 0) {
-      setErro("Informe um valor válido para resgatar.");
+    const valorNum = parseFloat(valor);
+    if (!valorNum || valorNum <= 0) {
+      setMensagem("Informe um valor válido para resgate.");
       return;
     }
-
-    if (Number(valor) > investimento) {
-      setErro("Valor excede o total investido na poupança.");
+    if (valorNum > disponivel) {
+      setMensagem("Valor superior ao disponível para resgate!");
       return;
     }
 
     try {
-      const resp = await resgatarPoupanca(cpf, parseFloat(valor));
+      const resp = await resgatarPoupanca(cpf, valorNum);
       setMensagem(resp.mensagem || "Resgate realizado com sucesso!");
       setValor("");
 
-      //atualiza o valor investido após o resgate
-      const dados = await detalhesConta(cpf);
-      const investAtual =
-        typeof dados.investimento === "number"
-          ? dados.investimento
-          : dados.poupanca?.investimento || 0;
-      setInvestimento(investAtual);
-    } catch (err) {
-      setErro("Erro ao realizar resgate.");
+      //atualiza saldo disponível
+      const contaAtualizada = await detalhesConta(cpf);
+      const novoInvest = contaAtualizada.poupanca?.investimento ?? contaAtualizada.investimento ?? 0;
+      setDisponivel(parseFloat(novoInvest.toFixed(2)));
+    } catch (e) {
+      console.error(e);
+      setMensagem("Erro ao realizar resgate. Tente novamente.");
     }
-  }
+  };
 
   return (
-    <div className="text-center mt-10">
-      <h1 className="text-4xl font-bold text-white mb-6">
-        🏦 Resgatar da Poupança
-      </h1>
+    <div className="page">
+      <div className="card" style={{ width: 340 }}>
+        <h2>Resgatar da Poupança</h2>
 
-      <p className="text-lg text-white mb-2">
-        <strong>Valor disponível para resgate:</strong> R$ {investimento.toFixed(2)}
-      </p>
+        {carregando ? (
+          <p>Carregando saldo disponível...</p>
+        ) : (
+          <p style={{ color: "gray", marginBottom: 10 }}>
+            Disponível para resgate: <b>R$ {disponivel.toFixed(2)}</b>
+          </p>
+        )}
 
-      <div className="mt-4">
-        <input
-          type="number"
-          placeholder="Valor a resgatar"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          className="p-2 rounded bg-gray-800 text-white text-center"
-        />
+        <form className="form" onSubmit={handleResgatar}>
+          <input
+            type="number"
+            step="0.01"
+            placeholder="Valor a resgatar"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+          />
+          <button className="btn cadastro" type="submit">
+            Confirmar Resgate
+          </button>
+        </form>
+
+        {mensagem && (
+          <p
+            style={{
+              color: mensagem.includes("sucesso") ? "green" : "red",
+              marginTop: 10,
+            }}
+          >
+            {mensagem}
+          </p>
+        )}
+
         <button
-          onClick={resgatar}
-          className="ml-3 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded"
+          className="btn login"
+          style={{ marginTop: 15 }}
+          onClick={() => navigate("/menu")}
         >
-          Resgatar
+          Voltar ao Menu
         </button>
       </div>
-
-      {mensagem && <p className="mt-4 text-green-400 font-semibold">{mensagem}</p>}
-      {erro && <p className="mt-4 text-red-400 font-semibold">{erro}</p>}
-
-      <button
-        onClick={() => navigate("/menu")}
-        className="mt-6 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded"
-      >
-        ← Voltar ao Menu
-      </button>
     </div>
   );
 }

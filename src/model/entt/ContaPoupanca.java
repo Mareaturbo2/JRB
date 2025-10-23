@@ -31,7 +31,7 @@ public class ContaPoupanca extends Account {
         double totalAplicado = valor + rendimento;
 
         saldo -= valor;
-        investimento += totalAplicado;
+        investimento = Math.round((investimento + totalAplicado) * 100.0) / 100.0;
 
         ultimaAplicacao = LocalDate.now();
 
@@ -42,7 +42,7 @@ public class ContaPoupanca extends Account {
     public void resgatar(double valor) {
         if (valor <= 0) throw new DomainException("Valor inválido para resgate.");
         if (valor > investimento) throw new DomainException("Valor supera o montante investido.");
-        investimento -= valor;
+        investimento = Math.round((investimento - valor) * 100.0) / 100.0;
         saldo += valor;
         registrar("Resgate de Poupança", valor);
     }

@@ -1,63 +1,61 @@
 import { useNavigate } from "react-router-dom";
+import "../App.css";
 
 export default function Menu() {
-  //não redirecione aqui o PrivateRoute já protege.
-  const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
   const navigate = useNavigate();
+  const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
+
+  
+  const tipoNormalizado = String(usuario?.tipo || "")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+  const isPoupanca = tipoNormalizado.includes("poupanca");
 
   return (
-    <div
-      style={{
-        color: "white",
-        textAlign: "center",
-        marginTop: "60px",
-        fontFamily: "Arial, sans-serif",
-      }}
-    >
-      <h1>Bem-vindo, {usuario.titular}</h1>
-      <h3>
-        Conta {usuario.tipo === "poupanca" ? "Poupança" : "Corrente"} ({usuario.cpf})
-      </h3>
-      <h3 style={{ marginBottom: "30px" }}>Selecione uma operação</h3>
+    <div className="page">
+      <div className="card" style={{ width: 320 }}>
+        <h2>Bem-vindo, {usuario.titular || "Cliente"}</h2>
+        <p>Conta {isPoupanca ? "Poupança" : "Corrente"}{" "}</p>
+        <p>{usuario?.conta ? `( ${usuario.conta} )` : `( ${usuario.cpf} )`}</p>
+        <p style={{ marginBottom: 16 }}>Selecione uma operação</p>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", justifyContent: "center" }}>
-        <button onClick={() => navigate("/saldo")}>💰 Ver Saldo</button>
-        <button onClick={() => navigate("/deposito")}>📥 Depósito</button>
-        <button onClick={() => navigate("/saque")}>🏧 Saque</button>
-        <button onClick={() => navigate("/transferencia")}>🔁 Transferência</button>
-        <button onClick={() => navigate("/pagamento")}>💸 Pagamento</button>
-        <button onClick={() => navigate("/cartoes")}>💳 Cartões</button>
-        <button onClick={() => navigate("/extrato")}>📜 Extrato</button>
-        <button onClick={() => navigate("/encerrar")}>❌ Encerrar Conta</button>
-       {/*botões só para conta Poupança */}
-{usuario?.tipo === "poupanca" && (
-  <div style={{ marginTop: "25px", background: "#f7faff", padding: "15px", borderRadius: "10px" }}>
-    <h2>💎 Funções da Poupança</h2>
+        <div className="form" style={{ gap: 10 }}>
+          <button className="btn cadastro" onClick={() => navigate("/saldo")}>Saldo</button>
+          <button className="btn cadastro" onClick={() => navigate("/deposito")}>Depósito</button>
+          <button className="btn cadastro" onClick={() => navigate("/saque")}>Saque</button>
+          <button className="btn cadastro" onClick={() => navigate("/transferencia")}>Transferência</button>
+          <button className="btn cadastro" onClick={() => navigate("/pagamento")}>Pagamento</button>
+          <button className="btn cadastro" onClick={() => navigate("/cartoes")}>Cartões</button>
+          <button className="btn cadastro" onClick={() => navigate("/extrato")}>Extrato</button>
 
-    <button
-      onClick={() => navigate("/investir-poupanca")}
-      style={{ marginRight: "10px" }}
-    >
-      💰 Investir na Poupança
-    </button>
+          {/* só aparece para poupança */}
+          {isPoupanca && (
+            <>
+              <button className="btn cadastro" onClick={() => navigate("/investir-poupanca")}>
+                Investir
+              </button>
+              <button className="btn cadastro" onClick={() => navigate("/resgatar-poupanca")}>
+                Resgatar
+              </button>
+            </>
+          )}
 
-    <button onClick={() => navigate("/resgatar-poupanca")}>
-      🔁 Resgatar da Poupança
-    </button>
-  </div>
-)}
+          <button className="btn cadastro" onClick={() => navigate("/encerrar")}>
+            Encerrar Conta
+          </button>
 
-      </div>
-
-      <div style={{ marginTop: 24 }}>
-        <button
-          onClick={() => {
-            localStorage.removeItem("usuario");
-            navigate("/login");
-          }}
-        >
-          🚪 Sair
-        </button>
+          <button
+            className="btn login"
+            onClick={() => {
+              localStorage.removeItem("usuario");
+              navigate("/login");
+            }}
+          >
+            Sair
+          </button>
+        </div>
       </div>
     </div>
   );

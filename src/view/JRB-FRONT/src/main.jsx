@@ -22,12 +22,12 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
-        {/* Rota pública */}
+        {/* rota pública */}
         <Route path="/" element={<App />} />
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Cadastro />} />
 
-        {/* 🔒 Rotas protegidas */}
+        {/*rotas protegidas */}
         <Route
           path="/menu"
           element={

@@ -1,106 +1,128 @@
 import { useEffect, useState } from "react";
 import { detalhesConta, investirPoupanca } from "../utils/api";
-import { getCpfLogado } from "../utils/auth";
 import { useNavigate } from "react-router-dom";
+import "../App.css";
 
 export default function InvestirPoupanca() {
   const [saldo, setSaldo] = useState(0);
   const [investimentoAtual, setInvestimentoAtual] = useState(0);
   const [valor, setValor] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const cpf = getCpfLogado();
+  const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
+  const cpf = usuario.cpf;
   const navigate = useNavigate();
 
+  //bloqueia acesso por URL para quem não for conta poupança
+  useEffect(() => {
+    const tipoNormalizado = String(usuario.tipo || "")
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .toLowerCase();
+    if (!tipoNormalizado.includes("poupanca")) {
+      navigate("/menu", { replace: true });
+    }
+  }, [usuario, navigate]);
+
+  //carrega saldo e investimento atual
   useEffect(() => {
     async function carregarDados() {
       try {
         const dados = await detalhesConta(cpf);
         setSaldo(dados.saldo || 0);
 
-        //verifica os investimentos dentro da poupança
+        // Detecta investimento dentro de `poupanca` ou direto
         if (typeof dados.investimento === "number") {
-  setInvestimentoAtual(dados.investimento);
-} else if (dados.poupanca && typeof dados.poupanca.investimento === "number") {
-  setInvestimentoAtual(dados.poupanca.investimento);
-} else {
-  setInvestimentoAtual(0);
-}
-
+          setInvestimentoAtual(dados.investimento);
+        } else if (dados.poupanca?.investimento) {
+          setInvestimentoAtual(dados.poupanca.investimento);
+        } else {
+          setInvestimentoAtual(0);
+        }
       } catch (e) {
         console.error(e);
         setMensagem("Erro ao carregar dados da conta.");
       }
     }
-
     carregarDados();
   }, [cpf]);
 
+  //investir
   async function investir() {
     setMensagem("");
-    if (!valor || isNaN(valor) || Number(valor) <= 0) {
+    const valorNum = parseFloat(valor);
+    if (!valorNum || valorNum <= 0) {
       setMensagem("Informe um valor válido para investir.");
       return;
     }
-    if (Number(valor) > saldo) {
+    if (valorNum > saldo) {
       setMensagem("Saldo insuficiente para investir.");
       return;
     }
 
     try {
-      const resp = await investirPoupanca(cpf, Number(valor));
-      setMensagem(resp.mensagem || "Investimento realizado!");
+      const resp = await investirPoupanca(cpf, valorNum);
+      setMensagem(resp.mensagem || "Investimento realizado com sucesso!");
       setValor("");
-      //atualiza saldo e investimento
+
+      //atualiza valores apos investir
       const novosDados = await detalhesConta(cpf);
       setSaldo(novosDados.saldo || 0);
       setInvestimentoAtual(
-  novosDados.investimento || novosDados.poupanca?.investimento || 0
-);
-
+        novosDados.investimento ||
+          novosDados.poupanca?.investimento ||
+          0
+      );
     } catch (e) {
-      setMensagem(e.message || "Erro ao investir na poupança.");
+      setMensagem("Erro ao realizar investimento.");
+      console.error(e);
     }
   }
 
   return (
-    <div className="text-center mt-10">
-      <h1 className="text-4xl font-bold text-white mb-6">
-        💰 Investir na Poupança
-      </h1>
+    <div className="page">
+      <div className="card" style={{ width: 340 }}>
+        <h2>Investir na Poupança 💰</h2>
 
-      <p className="text-lg text-white">
-        <strong>Saldo disponível:</strong> R$ {saldo.toFixed(2)}
-      </p>
-      <p className="text-lg text-white mb-4">
-        <strong>Investimento atual:</strong> R$ {investimentoAtual.toFixed(2)}
-      </p>
+        <p style={{ color: "gray", marginBottom: 10 }}>
+          Saldo disponível: <b>R$ {saldo.toFixed(2)}</b>
+        </p>
+        <p style={{ color: "gray", marginBottom: 20 }}>
+          Investimento atual: <b>R$ {investimentoAtual.toFixed(2)}</b>
+        </p>
 
-      <div className="mt-4">
-        <input
-          type="number"
-          placeholder="Valor para investir"
-          value={valor}
-          onChange={(e) => setValor(e.target.value)}
-          className="p-2 rounded bg-gray-800 text-white text-center"
-        />
+        <div className="form" style={{ gap: 10 }}>
+          <input
+            type="number"
+            placeholder="Valor a investir"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            className="input"
+          />
+
+          <button className="btn cadastro" onClick={investir}>
+            Confirmar Investimento
+          </button>
+        </div>
+
+        {mensagem && (
+          <p
+            style={{
+              marginTop: 10,
+              color: mensagem.includes("sucesso") ? "green" : "red",
+            }}
+          >
+            {mensagem}
+          </p>
+        )}
+
         <button
-          onClick={investir}
-          className="ml-3 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded"
+          className="btn login"
+          style={{ marginTop: 20 }}
+          onClick={() => navigate("/menu")}
         >
-          Investir
+          Voltar ao Menu
         </button>
       </div>
-
-      {mensagem && (
-        <p className="mt-4 text-green-400 font-semibold">{mensagem}</p>
-      )}
-
-      <button
-        onClick={() => navigate("/menu")}
-        className="mt-6 px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded"
-      >
-        ← Voltar ao Menu
-      </button>
     </div>
   );
 }

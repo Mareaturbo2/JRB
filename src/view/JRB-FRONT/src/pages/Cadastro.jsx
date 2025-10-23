@@ -1,42 +1,82 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { criarConta } from "../utils/api";
+import "../App.css";
 
 export default function Cadastro() {
-  const [form, setForm] = useState({ cpf: "", titular: "", senha: "1234", tipo: "corrente", saldoInicial: 0 });
-  const [msg, setMsg] = useState("");
-  const [erro, setErro] = useState("");
+  const navigate = useNavigate();
+  const [dados, setDados] = useState({
+    titular: "",
+    cpf: "",
+    senha: "",
+    tipo: "corrente",
+    saldoInicial: 0,
+  });
+  const [mensagem, setMensagem] = useState("");
 
-  const onChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    setDados({ ...dados, [e.target.name]: e.target.value });
+  };
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    setMsg(""); setErro("");
+  const handleCadastro = async () => {
     try {
-      // tipo: "corrente" ou "poupanca"
-      const payload = { ...form, saldoInicial: Number(form.saldoInicial) || 0 };
-      const res = await criarConta(payload);
-      setMsg(res?.mensagem || "Conta criada com sucesso!");
+      const res = await criarConta({
+        ...dados,
+        saldoInicial: parseFloat(dados.saldoInicial) || 0,
+      });
+      setMensagem(res.mensagem || "Conta criada com sucesso!");
+      setTimeout(() => navigate("/login"), 1500);
     } catch (e) {
-      setErro(e.message);
+      setMensagem("Erro: " + e.message);
     }
   };
 
   return (
-    <div className="card">
-      <h2>Abrir Conta</h2>
-      <form onSubmit={onSubmit} className="form">
-        <input name="cpf" placeholder="CPF" value={form.cpf} onChange={onChange} required />
-        <input name="titular" placeholder="Titular" value={form.titular} onChange={onChange} required />
-        <input name="senha" placeholder="Senha" value={form.senha} onChange={onChange} />
-        <select name="tipo" value={form.tipo} onChange={onChange}>
-          <option value="corrente">Corrente</option>
-          <option value="poupanca">Poupança</option>
-        </select>
-        <input name="saldoInicial" type="number" step="0.01" placeholder="Saldo Inicial" value={form.saldoInicial} onChange={onChange} />
-        <button type="submit">Criar Conta</button>
-      </form>
-      {msg && <p className="ok">{msg}</p>}
-      {erro && <p className="err">{erro}</p>}
+    <div className="page">
+      <div className="card">
+        <h2>Cadastro</h2>
+        <p>Crie sua conta</p>
+        <div className="form">
+          <input
+            name="titular"
+            placeholder="Nome completo"
+            value={dados.titular}
+            onChange={handleChange}
+          />
+          <input
+            name="cpf"
+            placeholder="CPF"
+            value={dados.cpf}
+            onChange={handleChange}
+          />
+          <input
+            name="senha"
+            placeholder="Senha"
+            type="password"
+            value={dados.senha}
+            onChange={handleChange}
+          />
+          <select name="tipo" value={dados.tipo} onChange={handleChange}>
+            <option value="corrente">Conta Corrente</option>
+            <option value="poupanca">Conta Poupança</option>
+          </select>
+          <input
+            name="saldoInicial"
+            type="number"
+            step="0.01"
+            placeholder="Saldo inicial"
+            value={dados.saldoInicial}
+            onChange={handleChange}
+          />
+          <button className="btn cadastro" onClick={handleCadastro}>
+            Criar Conta
+          </button>
+          <button className="btn login" onClick={() => navigate("/")}>
+            Voltar
+          </button>
+          {mensagem && <p>{mensagem}</p>}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,102 +1,87 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { pagarBoleto } from "../utils/api"; 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { pagarBoleto } from "../utils/api";
+import "../App.css";
 
 export default function Pagamento() {
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const cpf = usuario?.cpf;
-
+  const navigate = useNavigate();
+  const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
   const [codigo, setCodigo] = useState("");
   const [valor, setValor] = useState("");
-  const [dataVencimento, setDataVencimento] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [erro, setErro] = useState("");
 
-  const handlePagamento = async () => {
-    if (!codigo || !valor) {
-      setMensagem("❌ Informe o código e o valor do boleto.");
-      return;
-    }
+  async function handlePagamento(e) {
+    e.preventDefault();
+    setErro("");
+    setMensagem("");
 
     try {
-      const data = await pagarBoleto(cpf, codigo, parseFloat(valor), dataVencimento);
+      //faz o pagamento via api
+      const resposta = await pagarBoleto(usuario.cpf, codigo, parseFloat(valor));
 
-      if (data.mensagem) {
-        setMensagem("✅ " + data.mensagem);
-      } else {
-        setMensagem("❌ " + (data.erro || "Erro desconhecido."));
-      }
-    } catch (erro) {
-      setMensagem("❌ Erro de conexão: " + erro.message);
+      //mostra mensagem de sucesso
+      setMensagem(resposta.mensagem || "Pagamento realizado com sucesso!");
+
+      //nome esperado do arquivo igual ao gerado no backend
+      const nomeArquivo = `comprovante_boleto_${codigo}.pdf`;
+      const urlArquivo = `http://localhost:8080/${nomeArquivo}`;
+
+      //baixa automaticamente o pdf gerado
+      setTimeout(() => {
+        const link = document.createElement("a");
+        link.href = urlArquivo;
+        link.download = nomeArquivo;
+        link.target = "_blank";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 1500);
+
+    } catch (err) {
+      console.error(err);
+      setErro("Erro ao processar o pagamento: " + err.message);
     }
-  };
+  }
 
   return (
-    <div style={{ padding: "30px", textAlign: "center", color: "white" }}>
-      <h1>Pagamento de Conta / Boleto</h1>
+    <div className="page">
+      <div className="card" style={{ width: 360 }}>
+        <h2>Pagamento de Boleto</h2>
 
-      <div style={{ marginTop: "20px" }}>
-        <label>
-          Número do Boleto:
+        <form className="form" onSubmit={handlePagamento}>
           <input
             type="text"
+            placeholder="Código do boleto"
             value={codigo}
             onChange={(e) => setCodigo(e.target.value)}
-            style={{ margin: "5px", padding: "5px" }}
+            className="input"
+            required
           />
-        </label>
 
-        <label>
-          Valor (R$):
           <input
             type="number"
+            placeholder="Valor"
             value={valor}
             onChange={(e) => setValor(e.target.value)}
-            style={{ margin: "5px", padding: "5px" }}
+            className="input"
+            required
           />
-        </label>
 
-        <label>
-          Vencimento (opcional):
-          <input
-            type="text"
-            placeholder="DD/MM/AAAA"
-            value={dataVencimento}
-            onChange={(e) => setDataVencimento(e.target.value)}
-            style={{ margin: "5px", padding: "5px" }}
-          />
-        </label>
+          {erro && <p style={{ color: "red" }}>{erro}</p>}
+          {mensagem && <p style={{ color: "green" }}>{mensagem}</p>}
+
+          <button type="submit" className="btn cadastro">
+            Pagar
+          </button>
+        </form>
 
         <button
-          onClick={handlePagamento}
-          style={{
-            marginLeft: "10px",
-            padding: "6px 16px",
-            backgroundColor: "#222",
-            color: "white",
-            border: "1px solid white",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
+          className="btn login"
+          onClick={() => navigate("/menu")}
         >
-          Pagar
-        </button>
-      </div>
-
-      {mensagem && (
-        <p
-          style={{
-            marginTop: "20px",
-            color: mensagem.startsWith("✅") ? "lightgreen" : "salmon",
-          }}
-        >
-          {mensagem}
-        </p>
-      )}
-
-      <div style={{ marginTop: "20px" }}>
-        <Link to="/menu" style={{ color: "lightblue", textDecoration: "none" }}>
           Voltar
-        </Link>
+        </button>
       </div>
     </div>
   );

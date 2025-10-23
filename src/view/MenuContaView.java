@@ -83,7 +83,7 @@ public class MenuContaView {
     private void consultarSaldo() {
     System.out.println("\n=== SALDO DA CONTA ===");
 
-    // Exibe saldo padrão
+    //exibe saldo padrão
     System.out.printf("Saldo atual: R$ %.2f%n", conta.getSaldo());
 
     //se for conta corrente, mostra cheque especial detalhado

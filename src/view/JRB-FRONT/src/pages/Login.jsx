@@ -1,64 +1,95 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "../App.css";
+import { login, detalhesConta } from "../utils/api"; 
 
 export default function Login() {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
-  const [mensagem, setMensagem] = useState("");
+  const [erro, setErro] = useState("");
   const navigate = useNavigate();
 
   async function handleLogin(e) {
     e.preventDefault();
+    setErro("");
 
     try {
-      const response = await fetch("http://localhost:8080/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cpf, senha }),
-      });
+      const resposta = await login(cpf, senha);
 
-      if (!response.ok) {
-        const erro = await response.json();
-        setMensagem("❌ " + (erro.erro || "Falha ao fazer login."));
-        return;
+      //se o backend retornar string tenta converter se não der usa como nome
+      let dados;
+      if (typeof resposta === "string") {
+        try {
+          dados = JSON.parse(resposta);
+        } catch {
+          dados = { cpf, titular: resposta, tipo: "corrente" }; // 
+        }
+      } else {
+        dados = resposta;
       }
 
-      const dados = await response.json();
+      // busca detalhes da conta para obter o numero
+      let numeroConta = null;
+      let tipoConta = dados?.tipo || "corrente";
+      let titular = dados?.titular || "Cliente";
 
-      //salva todos os dados da conta no localStorage
-      localStorage.setItem("usuario", JSON.stringify({ ...dados, cpf }));
+      try {
+        const info = await detalhesConta(cpf);               
+        numeroConta = info?.numero ?? info?.conta ?? null;   // numero da conta
+        tipoConta = info?.tipo ?? tipoConta;                 // confirma tipo
+        if (!dados?.titular && info?.titular) titular = info.titular; 
+      } catch {
+        //não travar o login se essa consulta falhar
+      }
 
+      //salva no localStorage
+      const usuario = {
+        cpf: dados?.cpf || cpf,
+        titular,
+        tipo: tipoConta,
+        conta: numeroConta, 
+      };
 
-      setMensagem("✅ Login realizado com sucesso!");
-      setTimeout(() => navigate("/menu"), 1000);
-
-    } catch (err) {
-      console.error("Erro ao logar:", err);
-      setMensagem("❌ Erro de conexão com o servidor.");
+      localStorage.setItem("usuario", JSON.stringify(usuario));
+      navigate("/menu");
+    } catch (error) {
+      console.error(error);
+      setErro("CPF ou senha incorretos ou erro no servidor.");
     }
   }
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="CPF"
-          value={cpf}
-          onChange={(e) => setCpf(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={senha}
-          onChange={(e) => setSenha(e.target.value)}
-          required
-        />
-        <button type="submit">Entrar</button>
-      </form>
-      <p>{mensagem}</p>
+    <div className="page">
+      <div className="card" style={{ width: 320 }}>
+        <h2>Login</h2>
+
+        <form className="form" onSubmit={handleLogin}>
+          <input
+            type="text"
+            placeholder="CPF"
+            value={cpf}
+            onChange={(e) => setCpf(e.target.value)}
+            className="input"
+          />
+          <input
+            type="password"
+            placeholder="Senha"
+            value={senha}
+            onChange={(e) => setSenha(e.target.value)}
+            className="input"
+          />
+
+          {erro && <p style={{ color: "red" }}>{erro}</p>}
+
+          <button className="btn login" type="submit">
+            Entrar
+          </button>
+        </form>
+
+        <button className="btn cadastro" onClick={() => navigate("/cadastro")}>
+          Criar Conta
+        </button>
+      </div>
     </div>
   );
 }

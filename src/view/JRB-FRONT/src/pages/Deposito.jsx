@@ -1,36 +1,48 @@
 import { useState } from "react";
-import { getCpfLogado, depositar } from "../utils/api";
+import { useNavigate } from "react-router-dom";
+import { depositar, getCpfLogado } from "../utils/api";
+import "../App.css";
 
 export default function Deposito() {
+  const navigate = useNavigate();
+  const cpf = getCpfLogado();
   const [valor, setValor] = useState("");
   const [mensagem, setMensagem] = useState("");
- const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
-  const cpf = usuario.cpf;
-
 
   const handleDeposito = async () => {
+    if (!valor || valor <= 0) {
+      setMensagem("Informe um valor válido!");
+      return;
+    }
+
     try {
-      const resp = await depositar(cpf, parseFloat(valor));
-      setMensagem(resp.mensagem || "Depósito realizado com sucesso!");
+      const resposta = await depositar(cpf, parseFloat(valor));
+      setMensagem(resposta.mensagem || "Depósito realizado com sucesso!");
       setValor("");
-    } catch (erro) {
-      setMensagem("Erro no depósito: " + erro.message);
+    } catch (e) {
+      setMensagem("Erro: " + e.message);
     }
   };
 
   return (
-    <div style={{ color: "white", textAlign: "center", marginTop: "100px" }}>
-      <h2>Depósito</h2>
-      <input
-        type="number"
-        placeholder="Valor (R$)"
-        value={valor}
-        onChange={(e) => setValor(e.target.value)}
-        style={{ marginRight: "10px" }}
-      />
-      <button onClick={handleDeposito}>Depositar</button>
-      <p>{mensagem}</p>
-      <a href="/menu" style={{ color: "#6f6fff" }}>Voltar</a>
+    <div className="page">
+      <div className="card">
+        <h2>Depósito</h2>
+        <p>Informe o valor para depósito:</p>
+        <input
+          type="number"
+          placeholder="Ex: 100.00"
+          value={valor}
+          onChange={(e) => setValor(e.target.value)}
+        />
+        <button className="btn cadastro" onClick={handleDeposito}>
+          Confirmar Depósito
+        </button>
+        <button className="btn login" onClick={() => navigate("/menu")}>
+          Voltar ao Menu
+        </button>
+        {mensagem && <p>{mensagem}</p>}
+      </div>
     </div>
   );
 }

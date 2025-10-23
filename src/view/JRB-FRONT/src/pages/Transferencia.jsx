@@ -1,64 +1,56 @@
 import { useState } from "react";
-import { transferir } from "../utils/api";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { transferir, getCpfLogado } from "../utils/api";
+import "../App.css";
 
 export default function Transferencia() {
-  //olha o CPF salvo no localStorage após o login
-  const usuario = JSON.parse(localStorage.getItem("usuario"));
-  const cpfOrigem = usuario?.cpf;
-
+  const navigate = useNavigate();
+  const cpfOrigem = getCpfLogado();
   const [cpfDestino, setCpfDestino] = useState("");
   const [valor, setValor] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [erro, setErro] = useState("");
 
-  const handleTransferir = async (e) => {
-    e.preventDefault();
-    setMensagem("");
-    setErro("");
+  const handleTransferir = async () => {
+    if (!cpfDestino || !valor || valor <= 0) {
+      setMensagem("Preencha todos os campos corretamente!");
+      return;
+    }
 
     try {
-      const resposta = await transferir(cpfOrigem, cpfDestino, parseFloat(valor));
-      if (resposta.erro) {
-        setErro("❌ " + resposta.erro);
-      } else {
-        setMensagem("✅ " + (resposta.mensagem || JSON.stringify(resposta)));
-      }
-    } catch (err) {
-      setErro("❌ Erro na transferência: " + err.message);
+      const res = await transferir(cpfOrigem, cpfDestino, parseFloat(valor));
+      setMensagem(res.mensagem || "Transferência realizada com sucesso!");
+      setCpfDestino("");
+      setValor("");
+    } catch (e) {
+      setMensagem("Erro: " + e.message);
     }
   };
 
-  if (!cpfOrigem) {
-    return <p>⚠️ Faça login antes de realizar transferências.</p>;
-  }
-
   return (
-    <div className="card">
-      <h2>Transferência</h2>
-      <form onSubmit={handleTransferir} className="form">
+    <div className="page">
+      <div className="card">
+        <h2>Transferência</h2>
+        <p>Informe o CPF de destino e o valor:</p>
         <input
           type="text"
           placeholder="CPF Destino"
           value={cpfDestino}
           onChange={(e) => setCpfDestino(e.target.value)}
-          required
         />
         <input
           type="number"
-          step="0.01"
-          placeholder="Valor"
+          placeholder="Valor (R$)"
           value={valor}
           onChange={(e) => setValor(e.target.value)}
-          required
         />
-        <button type="submit">Transferir</button>
-      </form>
-
-      {mensagem && <p className="ok">{mensagem}</p>}
-      {erro && <p className="err">{erro}</p>}
-
-      <Link to="/menu">Voltar</Link>
+        <button className="btn cadastro" onClick={handleTransferir}>
+          Confirmar Transferência
+        </button>
+        <button className="btn login" onClick={() => navigate("/menu")}>
+          Voltar ao Menu
+        </button>
+        {mensagem && <p>{mensagem}</p>}
+      </div>
     </div>
   );
 }

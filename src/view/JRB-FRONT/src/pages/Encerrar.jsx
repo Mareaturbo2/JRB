@@ -1,31 +1,40 @@
+import { useNavigate } from "react-router-dom";
+import { encerrarConta, getCpfLogado } from "../utils/api";
+import "../App.css";
 import { useState } from "react";
-import { getCpfLogado, encerrarConta } from "../utils/api";
+
 
 export default function Encerrar() {
+  const navigate = useNavigate();
+  const cpf = getCpfLogado();
   const [mensagem, setMensagem] = useState("");
- const usuario = JSON.parse(localStorage.getItem("usuario")) || {};
-const cpf = usuario.cpf;
-
 
   const handleEncerrar = async () => {
+    if (!confirm("Deseja realmente encerrar sua conta?")) return;
+
     try {
-      const resp = await encerrarConta(cpf);
-      setMensagem(resp.mensagem || "Conta encerrada com sucesso.");
-      localStorage.clear(); // limpa login
-    } catch (erro) {
-      setMensagem("Erro ao encerrar: " + erro.message);
+      const msg = await encerrarConta(cpf);
+      setMensagem(msg);
+      localStorage.clear();
+      setTimeout(() => navigate("/"), 2000);
+    } catch (e) {
+      setMensagem("Erro: " + e.message);
     }
   };
 
   return (
-    <div style={{ color: "white", textAlign: "center", marginTop: "100px" }}>
-      <h2>Encerrar Conta</h2>
-      <p>Deseja realmente encerrar sua conta?</p>
-      <button onClick={handleEncerrar} style={{ backgroundColor: "red", color: "white" }}>
-        Confirmar Encerramento
-      </button>
-      <p>{mensagem}</p>
-      <a href="/menu" style={{ color: "#6f6fff" }}>Voltar</a>
+    <div className="page">
+      <div className="card">
+        <h2>Encerrar Conta</h2>
+        <p>Tem certeza que deseja encerrar sua conta?</p>
+        <button className="btn cadastro" onClick={handleEncerrar}>
+          Confirmar Encerramento
+        </button>
+        {mensagem && <p>{mensagem}</p>}
+        <button className="btn login" onClick={() => navigate("/menu")}>
+          Voltar
+        </button>
+      </div>
     </div>
   );
 }

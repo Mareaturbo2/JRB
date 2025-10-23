@@ -15,7 +15,7 @@ public class CartaoService {
     public void solicitarCartaoCredito(String cpf, double limite) {
         Account conta = bank.buscarConta(cpf);
         if (conta == null) throw new DomainException("Conta não encontrada.");
-        // 🚫 Bloqueio para contas poupança
+        // bloqueio para contas poupança
                 if (conta instanceof model.entt.ContaPoupanca) {
                     throw new RuntimeException("Contas poupança não podem possuir cartão de crédito.");
                 }

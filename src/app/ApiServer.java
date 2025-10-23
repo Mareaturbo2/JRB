@@ -13,6 +13,7 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 
+import java.io.File;
 import java.lang.reflect.Type;
 import model.entt.Account;
 import model.entt.CartaoCredito;
@@ -51,11 +52,12 @@ public class ApiServer {
 
     public static void main(String[] args) {
         port(8080);
+        staticFiles.externalLocation(new File("data").getAbsolutePath());
 
         final BankService bankService = new BankService();
         final CartaoService cartaoService = new CartaoService(bankService);
             final Gson gson = new GsonBuilder()
-                // 🔹 Suporte para LocalDate
+                //suporte para local date
                 .registerTypeAdapter(LocalDate.class, new JsonSerializer<LocalDate>() {
                     @Override
                     public JsonElement serialize(LocalDate src, Type typeOfSrc, JsonSerializationContext context) {
@@ -68,7 +70,7 @@ public class ApiServer {
                         return LocalDate.parse(json.getAsString());
                     }
                 })
-                // 🔹 Suporte para LocalDateTime
+                //suporte para local data time
                 .registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {
                     @Override
                     public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {
@@ -95,7 +97,11 @@ public class ApiServer {
             return "OK";
         });
 
-        before((req, res) -> res.header("Access-Control-Allow-Origin", "*"));
+        before((req, res) -> {
+                res.header("Access-Control-Allow-Origin", "*");
+                res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+                res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+            });
 
         
         // Status
@@ -114,7 +120,7 @@ public class ApiServer {
                 String senha = String.valueOf(data.get("senha"));
 
                 try {
-                    // ✅ Ordem corrigida: CPF primeiro, nome (titular) depois
+                    
                     bankService.criarConta(nome, cpf, senha, saldoInicial, tipo);
 
                     return gson.toJson("Conta criada com sucesso!");
@@ -148,7 +154,7 @@ public class ApiServer {
                 return gson.toJson(Map.of("erro", "Conta encerrada."));
             }
 
-            // ✅ Verifica senha e retorna JSON completo
+            //verifica senha e retorna json completo
             if (conta.validarSenha(senha)) {
                 JsonObject contaJson = gson.toJsonTree(conta).getAsJsonObject();
 
@@ -159,7 +165,7 @@ public class ApiServer {
                     contaJson.addProperty("tipo", "corrente");
                 }
 
-                // Retorna todos os dados da conta no login
+                //retorna todos os dados da conta no login
                 return gson.toJson(contaJson);
             } else {
                 res.status(401);
@@ -184,17 +190,17 @@ public class ApiServer {
                 return gson.toJson(Map.of("erro", "Conta não encontrada."));
             }
 
-            // ✅ Cria o JSON da conta
+            //cria o json da conta
             JsonObject contaJson = gson.toJsonTree(conta).getAsJsonObject();
 
-            // ✅ Adiciona o campo "tipo" manualmente com base na classe
+            //adiciona o campo "tipo" manualmente com base na classe
             if (conta instanceof model.entt.ContaPoupanca) {
                 contaJson.addProperty("tipo", "poupanca");
             } else {
                 contaJson.addProperty("tipo", "corrente");
             }
 
-            // ✅ Retorna o JSON completo
+            //retorna o json completo
             return gson.toJson(contaJson);
         });
 
@@ -264,7 +270,7 @@ public class ApiServer {
                 String cpf = req.params("cpf");
 
                 try {
-                    // ✅ Agora lê o valor do corpo JSON
+                    
                     JsonObject body = gson.fromJson(req.body(), JsonObject.class);
                     double valor = body.get("valor").getAsDouble();
 
@@ -297,7 +303,7 @@ public class ApiServer {
             String dataVencimento = body.containsKey("dataVencimento") ? (String) body.get("dataVencimento") : null;
 
             try {
-                // ✅ Delega tudo ao BankService
+                
                 bankService.pagarBoleto(cpf, codigo, valor, dataVencimento);
 
                 return gson.toJson(Map.of(

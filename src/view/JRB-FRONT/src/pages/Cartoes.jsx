@@ -1,346 +1,310 @@
 import { useEffect, useState } from "react";
 import {
+  solicitarCartaoCredito,
+  solicitarCartaoDebito,
+  obterInfoCartaoCredito,
+  obterInfoCartaoDebito,
   compraCredito,
   compraDebito,
   pagarFatura,
-  obterInfoCartaoCredito,
-  baixarFaturaPDF,
-  obterInfoCartaoDebito,
-  solicitarCartaoCredito,
-  solicitarCartaoDebito,
+  gerarFaturaPdf, 
 } from "../utils/api";
+import "../App.css";
 
 export default function Cartoes() {
   const usuario = JSON.parse(localStorage.getItem("usuario"));
   const cpf = usuario?.cpf;
-  const tipoConta = usuario?.tipo?.toLowerCase(); // "corrente" ou "poupanca"
+  const tipoConta = (usuario?.tipo || "").toLowerCase(); // "corrente" e "poupanca"
 
-  const [valor, setValor] = useState("");
-  const [descricao, setDescricao] = useState("");
-  const [mensagem, setMensagem] = useState("");
-  const [infoCartao, setInfoCartao] = useState(null);
+  // estados separados evita um apagar o outro
+  const [credito, setCredito] = useState(null);
+  const [debito, setDebito] = useState(null);
   const [temCredito, setTemCredito] = useState(false);
   const [temDebito, setTemDebito] = useState(false);
+
+  // inputs
+  const [descricao, setDescricao] = useState("");
+  const [valor, setValor] = useState("");
+  const [limite, setLimite] = useState("");
+
+  // ui
+  const [mensagem, setMensagem] = useState("");
   const [carregando, setCarregando] = useState(true);
 
-  //puxa as informações do cartão
   useEffect(() => {
-  if (!cpf) return;
+    if (!cpf) return;
+    const carregar = async () => {
+      setCarregando(true);
+      try {
+        // crédito
+        if (tipoConta !== "poupanca") {
+          try {
+            const c = await obterInfoCartaoCredito(cpf);
+            if (c && c.numeroCartao) {
+              setCredito(c);
+              setTemCredito(true);
+            } else {
+              setCredito(null);
+              setTemCredito(false);
+            }
+          } catch {
+            setCredito(null);
+            setTemCredito(false);
+          }
+        } else {
+          setCredito(null);
+          setTemCredito(false);
+        }
 
-  // 🔸 Contas poupança não têm cartão de crédito
-  if (tipoConta === "poupanca") {
-    setTemCredito(false);
-    setCarregando(false);
-    return;
-  }
-
-  const carregar = async () => {
-    setCarregando(true);
-    try {
-      const dados = await obterInfoCartaoCredito(cpf);
-      if (dados && dados.numeroCartao) {
-        setInfoCartao(dados);
-        setTemCredito(true);
-      } else {
-        setTemCredito(false);
+        // débito
+        try {
+          const d = await obterInfoCartaoDebito(cpf);
+          if (d && d.numeroCartao) {
+            setDebito(d);
+            setTemDebito(true);
+          } else {
+            setDebito(null);
+            setTemDebito(false);
+          }
+        } catch {
+          setDebito(null);
+          setTemDebito(false);
+        }
+      } finally {
+        setCarregando(false);
       }
-    } catch {
-      setTemCredito(false);
-    }
-    setCarregando(false);
-  };
-  carregar();
-}, [cpf, tipoConta]);
+    };
+    carregar();
+  }, [cpf, tipoConta]);
 
-//puxa as informações do cartão de débito
-
-useEffect(() => {
-  if (!cpf) return;
-
-  const carregarDebito = async () => {
-    try {
-      const dadosDebito = await obterInfoCartaoDebito(cpf);
-      if (dadosDebito && dadosDebito.numeroCartao) {
-        setTemDebito(true);
-        setInfoCartao((prev) => ({ ...prev, debito: dadosDebito }));
-      } else {
-        setTemDebito(false);
-      }
-    } catch {
-      setTemDebito(false);
-    }
+  const showError = (e, fallback) => {
+    // pega mensagem vinda do backend 
+    const msg =
+      (e && e.message) ||
+      (typeof e === "string" ? e : "") ||
+      fallback ||
+      "Erro inesperado.";
+    setMensagem(msg);
   };
 
-  carregarDebito();
-}, [cpf]);
-
-
-
-  if (!cpf) {
-    return (
-      <div style={{ color: "white", textAlign: "center", marginTop: "80px" }}>
-        <p>Faça login primeiro.</p>
-        <a href="/" style={{ color: "#6f6fff" }}>Ir ao Login</a>
-      </div>
-    );
-  }
-
-  //solicitar Cartão de Crédito
-  const handleSolicitarCredito = async (limite) => {
+  //solicitar cartões
+  const handleSolicitarCredito = async () => {
     if (tipoConta === "poupanca") {
       setMensagem("Contas poupança não podem solicitar cartão de crédito.");
       return;
     }
-
+    if (!limite || Number(limite) <= 0) {
+      setMensagem("Informe um limite válido.");
+      return;
+    }
     try {
-      const resp = await solicitarCartaoCredito(cpf, limite);
-      setMensagem(resp.mensagem || "Cartão de crédito solicitado com sucesso!");
-      setTemCredito(true);
-      const dados = await obterInfoCartaoCredito(cpf);
-      setInfoCartao(dados);
+      const r = await solicitarCartaoCredito(cpf, Number(limite));
+      setMensagem(r?.mensagem || "Cartão de crédito solicitado com sucesso!");
+      const c = await obterInfoCartaoCredito(cpf);
+      setCredito(c || null);
+      setTemCredito(!!c?.numeroCartao);
     } catch (e) {
-      setMensagem("Erro ao solicitar cartão de crédito: " + e.message);
+      showError(e, "Erro ao solicitar cartão de crédito.");
     }
   };
 
-  //solicitar Cartão de Débito
   const handleSolicitarDebito = async () => {
     try {
-      const resp = await solicitarCartaoDebito(cpf);
-      setMensagem(resp.mensagem || "Cartão de débito solicitado com sucesso!");
-      setTemDebito(true);
+      const r = await solicitarCartaoDebito(cpf);
+      setMensagem(r?.mensagem || "Cartão de débito solicitado com sucesso!");
+      const d = await obterInfoCartaoDebito(cpf);
+      setDebito(d || null);
+      setTemDebito(!!d?.numeroCartao);
     } catch (e) {
-      setMensagem("Erro ao solicitar cartão de débito: " + e.message);
+      showError(e, "Erro ao solicitar cartão de débito.");
     }
   };
 
-  //compra Crédito
+  //compras
   const handleCompraCredito = async () => {
+    const v = Number(valor);
+    if (!v || v <= 0) {
+      setMensagem("Informe um valor válido para compra.");
+      return;
+    }
+
+    //evita chamar o backend se já sabemos que vai estourar
+    const disponivel = Number(credito?.limiteDisponivel ?? 0);
+    if (disponivel && v > disponivel) {
+      setMensagem(`Valor acima do limite disponível (R$ ${disponivel.toFixed(2)}).`);
+      return;
+    }
+
     try {
-      const resp = await compraCredito(cpf, parseFloat(valor), descricao);
-      setMensagem(resp.mensagem || resp.erro);
+      const r = await compraCredito(cpf, v, descricao || "Compra crédito");
+      setMensagem(r?.mensagem || "Compra no crédito registrada com sucesso!");
       setValor("");
       setDescricao("");
-      const atualizadas = await obterInfoCartaoCredito(cpf);
-      setInfoCartao(atualizadas);
+      //recarrega só o crédito
+      const c = await obterInfoCartaoCredito(cpf);
+      setCredito(c || null);
+      setTemCredito(!!c?.numeroCartao);
     } catch (e) {
-      setMensagem("Erro na compra crédito: " + e.message);
+      showError(e, "Erro na compra no crédito.");
     }
   };
 
-  //compra Débito
-  const handleCompraDebito = async () => {
-    try {
-      const resp = await compraDebito(cpf, parseFloat(valor), descricao);
-      setMensagem(resp.mensagem || resp.erro);
-      setValor("");
-      setDescricao("");
-    } catch (e) {
-      setMensagem("Erro na compra débito: " + e.message);
-    }
-  };
+ const handleCompraDebito = async () => {
+  const v = Number(valor);
+  if (!v || v <= 0) {
+    setMensagem("Informe um valor válido para compra.");
+    return;
+  }
 
-  //pagar Fatura
+  try {
+    const resp = await compraDebito(cpf, v, (descricao && descricao.trim()) || "Compra débito");
+
+    if (resp?.erro) {            
+      setMensagem(resp.erro);     // ex: saldo insulficiente
+      return;
+    }
+
+    setMensagem(resp?.mensagem || "Compra no débito registrada com sucesso!");
+    setValor("");
+    setDescricao("");
+    //débito não tem info de saldo nada para recarregar aqui
+  } catch {
+    setMensagem("Erro de conexão ao tentar comprar no débito.");
+  }
+};
+
+  //fatura
   const handlePagarFatura = async () => {
     try {
-      const resp = await pagarFatura(cpf);
-      setMensagem(resp.mensagem || resp.erro);
-      const atualizadas = await obterInfoCartaoCredito(cpf);
-      setInfoCartao(atualizadas);
+      const r = await pagarFatura(cpf);
+      setMensagem(r?.mensagem || "Fatura paga com sucesso!");
+      const c = await obterInfoCartaoCredito(cpf);
+      setCredito(c || null);
+      setTemCredito(!!c?.numeroCartao);
     } catch (e) {
-      setMensagem("Erro ao pagar fatura: " + e.message);
+      showError(e, "Erro ao pagar fatura.");
     }
   };
 
-  //baixar Fatura PDF
   const handleBaixarPDF = () => {
-    if (infoCartao?.numeroCartao) {
-      baixarFaturaPDF(cpf, infoCartao.numeroCartao);
-    } else {
-      setMensagem("Cartão não encontrado.");
+    if (!credito?.numeroCartao) {
+      setMensagem("Número do cartão de crédito não encontrado.");
+      return;
+    }
+    try {
+      gerarFaturaPdf(cpf, credito.numeroCartao);
+    } catch (e) {
+      showError(e, "Erro ao baixar fatura.");
     }
   };
 
   return (
-    <div style={{ color: "white", textAlign: "center", marginTop: "50px" }}>
-      <h2>💳 Cartões</h2>
+    <div className="page">
+      <div className="card" style={{ width: 520 }}>
+        <h2>Cartões</h2>
 
-      {tipoConta === "poupanca" && (
-        <p style={{ color: "yellow", marginBottom: "20px" }}>
-          ⚠️ Contas poupança não podem possuir cartão de crédito.
-        </p>
-      )}
+        {carregando && <p>Carregando…</p>}
 
-      
-      {(!temCredito || !temDebito) && (
-        <div style={{ marginTop: "30px" }}>
-          <p>Você ainda pode solicitar novos cartões:</p>
+        {/* solicitações */}
+        {(!temCredito || !temDebito) && (
+          <div className="form" style={{ marginBottom: 16 }}>
+            {!temCredito && tipoConta !== "poupanca" && (
+              <>
+                <h3>Solicitar Cartão de Crédito</h3>
+                <input
+                  type="number"
+                  placeholder="Limite desejado (R$)"
+                  value={limite}
+                  onChange={(e) => setLimite(e.target.value)}
+                />
+                <button className="btn cadastro" onClick={handleSolicitarCredito}>
+                  Solicitar Crédito
+                </button>
+              </>
+            )}
 
-          {/* Cartão de credito  só para contas correntes */}
-          {tipoConta !== "poupanca" && !temCredito && (
-            <div style={{ marginBottom: "25px" }}>
-              <h4>🪪 Solicitar Cartão de Crédito</h4>
-              <input
-                type="number"
-                id="limiteCartao"
-                min="100"
-                step="100"
-                placeholder="Limite desejado (R$)"
-                style={{
-                  padding: "5px",
-                  borderRadius: "6px",
-                  border: "1px solid gray",
-                  width: "150px",
-                  marginBottom: "10px",
-                }}
-              />
-              <br />
-              <button
-                onClick={() => {
-                  const limite = parseFloat(document.getElementById("limiteCartao").value);
-                  if (isNaN(limite) || limite <= 0) {
-                    setMensagem("Informe um limite válido antes de solicitar o cartão.");
-                    return;
-                  }
-                  handleSolicitarCredito(limite);
-                }}
-                style={{
-                  backgroundColor: "#4caf50",
-                  color: "white",
-                  padding: "10px 20px",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                Solicitar Cartão de Crédito
-              </button>
-            </div>
-          )}
-
-          {/* Cartão de débito para todos */}
-          {!temDebito && (
-            <div style={{ marginBottom: "20px" }}>
-              <h4>💳 Solicitar Cartão de Débito</h4>
-              <button
-                onClick={handleSolicitarDebito}
-                style={{
-                  backgroundColor: "#2196f3",
-                  color: "white",
-                  padding: "10px 20px",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                }}
-              >
-                Solicitar Cartão de Débito
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
-      
-      {carregando ? (
-        <p>Carregando informações do cartão...</p>
-      ) : temCredito && infoCartao ? (
-        <div style={{ marginTop: "20px" }}>
-          <h3>💳 Cartão de Crédito</h3>
-          <p><strong>Número:</strong> {infoCartao.numeroCartao}</p>
-          <p><strong>Limite Total:</strong> R$ {infoCartao.limiteTotal.toFixed(2)}</p>
-          <p><strong>Limite Disponível:</strong> R$ {infoCartao.limiteDisponivel.toFixed(2)}</p>
-          <p><strong>Fatura Atual:</strong> R$ {infoCartao.valorFatura.toFixed(2)}</p>
-
-          <button onClick={handleBaixarPDF}>📄 Baixar Fatura PDF</button>
-
-          <h3 style={{ marginTop: "30px" }}>🧾 Compras da Fatura</h3>
-          {infoCartao.compras?.length > 0 ? (
-            <table
-              style={{
-                margin: "20px auto",
-                borderCollapse: "collapse",
-                color: "white",
-                width: "70%",
-              }}
-            >
-              <thead>
-                <tr style={{ borderBottom: "2px solid white" }}>
-                  <th>Data</th>
-                  <th>Descrição</th>
-                  <th>Valor (R$)</th>
-                </tr>
-              </thead>
-              <tbody>
-                {infoCartao.compras.map((c, i) => (
-                  <tr key={i} style={{ borderBottom: "1px solid gray" }}>
-                    <td>{c.dataHora || c.data || "-"}</td>
-                    <td>{c.descricao || c.tipo || "-"}</td>
-                    <td>R$ {Number(c.valor).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p>Nenhuma compra na fatura atual.</p>
-          )}
-
-          <h3 style={{ marginTop: "40px" }}>💰 Realizar Compra</h3>
-          <input
-            type="text"
-            placeholder="Descrição"
-            value={descricao}
-            onChange={(e) => setDescricao(e.target.value)}
-            style={{ marginRight: "10px" }}
-          />
-          <input
-            type="number"
-            placeholder="Valor"
-            value={valor}
-            onChange={(e) => setValor(e.target.value)}
-            style={{ marginRight: "10px" }}
-          />
-          <button onClick={handleCompraCredito}>Compra Crédito</button>
-          <button onClick={handleCompraDebito} style={{ marginLeft: "10px" }}>
-            Compra Débito
-          </button>
-
-          <div style={{ marginTop: "30px" }}>
-            <button onClick={handlePagarFatura}>💸 Pagar Fatura</button>
+            {!temDebito && (
+              <>
+                <h3>Solicitar Cartão de Débito</h3>
+                <button className="btn cadastro" onClick={handleSolicitarDebito}>
+                  Solicitar Débito
+                </button>
+              </>
+            )}
           </div>
-        </div>
-      ) : null}
-      
-{temDebito && infoCartao?.debito && (
-  <div style={{ marginTop: "40px" }}>
-    <h3>💳 Cartão de Débito</h3>
-    <p><strong>Número:</strong> {infoCartao.debito.numeroCartao}</p>
+        )}
 
-    <p>Você pode realizar compras diretamente com o saldo da conta.</p>
+        {/* Crédito */}
+        {temCredito && credito && (
+          <div className="form" style={{ marginTop: 8 }}>
+            <h3>Cartão de Crédito</h3>
+            <p><strong>Número:</strong> {credito.numeroCartao}</p>
+            <p><strong>Limite Total:</strong> R$ {(credito.limiteTotal ?? 0).toFixed(2)}</p>
+            <p><strong>Disponível:</strong> R$ {(credito.limiteDisponivel ?? 0).toFixed(2)}</p>
+            <p><strong>Fatura:</strong> R$ {(credito.valorFatura ?? 0).toFixed(2)}</p>
 
-    <input
-      type="text"
-      placeholder="Descrição"
-      value={descricao}
-      onChange={(e) => setDescricao(e.target.value)}
-      style={{ marginRight: "10px" }}
-    />
-    <input
-      type="number"
-      placeholder="Valor"
-      value={valor}
-      onChange={(e) => setValor(e.target.value)}
-      style={{ marginRight: "10px" }}
-    />
-    <button onClick={handleCompraDebito}>Compra Débito</button>
-  </div>
-)}
+            <h4>Realizar Compra</h4>
+            <input
+              type="text"
+              placeholder="Descrição"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Valor"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
+            <button className="btn cadastro" onClick={handleCompraCredito}>
+              Comprar no Crédito
+            </button>
 
+            <button className="btn cadastro" onClick={handlePagarFatura}>
+              Pagar Fatura
+            </button>
 
-      {mensagem && <p style={{ marginTop: "20px", color: "lightgreen" }}>{mensagem}</p>}
+            <button className="btn cadastro" onClick={handleBaixarPDF}>
+              Baixar Fatura PDF
+            </button>
+          </div>
+        )}
 
-      <a href="/menu" style={{ color: "#6f6fff", display: "block", marginTop: "30px" }}>
-        Voltar
-      </a>
+        {/* Débito */}
+        {temDebito && debito && (
+          <div className="form" style={{ marginTop: 24 }}>
+            <h3>Cartão de Débito</h3>
+            <p><strong>Número:</strong> {debito.numeroCartao}</p>
+            {debito.validade && <p><strong>Validade:</strong> {debito.validade}</p>}
+            {debito.cvv && <p><strong>CVV:</strong> {debito.cvv}</p>}
+
+            <h4>Compra no Débito</h4>
+            <input
+              type="text"
+              placeholder="Descrição"
+              value={descricao}
+              onChange={(e) => setDescricao(e.target.value)}
+            />
+            <input
+              type="number"
+              placeholder="Valor"
+              value={valor}
+              onChange={(e) => setValor(e.target.value)}
+            />
+            <button className="btn cadastro" onClick={handleCompraDebito}>
+              Comprar no Débito
+            </button>
+          </div>
+        )}
+
+        {mensagem && (
+          <p style={{ marginTop: 15, color: "#222", fontWeight: "bold" }}>{mensagem}</p>
+        )}
+
+        <a href="/menu" className="btn login" style={{ marginTop: 15 }}>
+          Voltar
+        </a>
+      </div>
     </div>
   );
 }
