@@ -223,6 +223,7 @@ npm run dev
 [![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9pXXATPeGEA)
 
 ## 🐞 Issue / Bug Tracker
+<img width="1908" height="849" alt="image" src="https://github.com/user-attachments/assets/97ec5527-4cdb-4751-9090-017fd87db59b" />
 
 
 
