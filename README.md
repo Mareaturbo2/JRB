@@ -222,8 +222,11 @@ npm run dev
 ## 🎥 Testes automatizados
 [![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9pXXATPeGEA)
 
-## 🐞 Issue / Bug Tracker
-![Issue / Bug Tracker 03](./assets/image.png)
+<h2>🐞 Issue / Bug Tracker</h2>
+<p align="center">
+  <img src="./assets/image.png" width="200px" alt="Bug Tracker">
+</p>
+
 
 
 
