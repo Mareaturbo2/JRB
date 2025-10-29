@@ -217,9 +217,13 @@ npm run dev
 ## 🎥 Screencast
 [![Entrega 1](https://img.shields.io/badge/YouTube-Entrega%201-red?style=for-the-badge&logo=youtube)](https://youtu.be/jlmBgCxwt4k)
 [![Entrega 2](https://img.shields.io/badge/YouTube-Entrega%202-red?style=for-the-badge&logo=youtube)](https://youtu.be/koP8LIMcJ9o)
-[![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%201-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9Hc3Nm24qgA)
+[![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9Hc3Nm24qgA)
 
 ## 🎥 Testes automatizados
-[![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%201-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9pXXATPeGEA)
+[![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9pXXATPeGEA)
+
+## 🐞 Issue / Bug Tracker
+![Issue / Bug Tracker 03](./assets/minha_foto.png)
+
 
 
