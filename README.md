@@ -224,7 +224,7 @@ npm run dev
 
 <h2>🐞 Issue / Bug Tracker</h2>
 <p align="center">
-  <img src="./assets/image.png" width="200px" alt="Bug Tracker">
+  <img src="./assets/Image.png" width="200px" alt="Bug Tracker">
 </p>
 
 
