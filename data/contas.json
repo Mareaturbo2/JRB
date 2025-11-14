@@ -2,35 +2,37 @@
   "111": {
     "cpf": "111",
     "tipo": "corrente",
-    "conta": 56701,
+    "conta": 61885,
     "titular": "Paulo",
     "senha": "1234",
-    "saldo": 1000.0,
+    "saldo": 98.0,
     "encerrada": false,
-    "cartaoCredito": {
-      "numero": "2407 4594 9346 5689",
-      "validade": "11/30",
-      "cvv": "691",
-      "limite": 500.0,
-      "fatura": {
-        "total": 0.0,
-        "compras": []
+    "movimentacoes": [
+      {
+        "tipo": "Saque (Conta Corrente)",
+        "valor": -100.0,
+        "dataHora": "05/11/2025 16:50"
+      },
+      {
+        "tipo": "Depósito",
+        "valor": 100.0,
+        "dataHora": "05/11/2025 16:56"
+      },
+      {
+        "tipo": "Pagamento de boleto 11",
+        "valor": -2.0,
+        "dataHora": "05/11/2025 16:56"
+      },
+      {
+        "tipo": "Transferência enviada para CPF 111",
+        "valor": -12.0,
+        "dataHora": "05/11/2025 16:57"
+      },
+      {
+        "tipo": "Transferência recebida de CPF 111",
+        "valor": 12.0,
+        "dataHora": "05/11/2025 16:57"
       }
-    },
-    "movimentacoes": []
-  },
-  "222": {
-    "cpf": "222",
-    "tipo": "poupanca",
-    "conta": 89831,
-    "titular": "Maria",
-    "senha": "5678",
-    "saldo": 2000.0,
-    "encerrada": false,
-    "poupanca": {
-      "investimento": 0.0,
-      "ultimaAplicacao": "2025-11-04"
-    },
-    "movimentacoes": []
+    ]
   }
 }

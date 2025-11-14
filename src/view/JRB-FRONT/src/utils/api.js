@@ -55,8 +55,16 @@ export async function pagarBoleto(cpf, codigo, valor, dataVencimento = null) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ codigo, valor, dataVencimento }),
   });
-  return resp.json();
+
+  const data = await resp.json();
+
+  if (!resp.ok) {
+    throw new Error(data.erro || "Erro ao pagar boleto.");
+  }
+
+  return data.mensagem || "Pagamento realizado com sucesso.";
 }
+
 
 
 //solicitar cartão de crédito
