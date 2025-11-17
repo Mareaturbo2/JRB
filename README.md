@@ -223,6 +223,7 @@ npm run dev
 
 ## 🎥 Testes automatizados
 [![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9pXXATPeGEA)
+[![Entrega 4](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://youtu.be/A-3tkIK7E1U)
 
 ## 🐞 Issue / Bug Tracker
 
