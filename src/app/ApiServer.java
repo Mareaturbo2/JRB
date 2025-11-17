@@ -15,6 +15,8 @@ import com.google.gson.JsonSerializer;
 
 import java.io.File;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+
 import model.entt.Account;
 import model.entt.CartaoCredito;
 import model.entt.CartaoDebito;
@@ -29,6 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -341,6 +344,24 @@ public class ApiServer {
                 res.status(400);
                 return gson.toJson(Map.of("erro", e.getMessage()));
             }
+        });
+        // puxar o ultimo comprovante para o front
+        get("/api/comprovantes/ultimo", (req, res) -> {
+            File pasta = new File("data");
+            File[] arquivos = pasta.listFiles((dir, nome) -> nome.startsWith("comprovante_transferencia_"));
+
+            if (arquivos == null || arquivos.length == 0) {
+                res.status(404);
+                return "Nenhum comprovante encontrado.";
+            }
+
+            // Ordena por data de modificação (mais recente primeiro)
+            Arrays.sort(arquivos, (a, b) -> Long.compare(b.lastModified(), a.lastModified()));
+            File maisRecente = arquivos[0];
+
+            res.type("application/pdf");
+            res.header("Content-Disposition", "inline; filename=" + maisRecente.getName());
+            return Files.readAllBytes(maisRecente.toPath());
         });
 
         

@@ -5,8 +5,144 @@
     "conta": 45111,
     "titular": "Paulo",
     "senha": "1234",
-    "saldo": 100.0,
+    "saldo": 217955.1,
     "encerrada": false,
-    "movimentacoes": []
+    "cartaoCredito": {
+      "numero": "6283 6579 5931 9084",
+      "validade": "11/30",
+      "cvv": "095",
+      "limite": 2000.0,
+      "fatura": {
+        "total": 0.0,
+        "compras": []
+      }
+    },
+    "cartaoDebito": {
+      "numero": "9904 3195 2398 4532",
+      "validade": "11/30",
+      "cvv": "508"
+    },
+    "movimentacoes": [
+      {
+        "tipo": "Saque (Conta Corrente)",
+        "valor": -100.0,
+        "dataHora": "17/11/2025 13:06"
+      },
+      {
+        "tipo": "Transferência enviada para CPF 111",
+        "valor": -10.0,
+        "dataHora": "17/11/2025 13:09"
+      },
+      {
+        "tipo": "Transferência recebida de CPF 111",
+        "valor": 10.0,
+        "dataHora": "17/11/2025 13:09"
+      },
+      {
+        "tipo": "Transferência enviada para CPF 1",
+        "valor": -22.0,
+        "dataHora": "17/11/2025 13:18"
+      },
+      {
+        "tipo": "Transferência enviada para CPF 1",
+        "valor": -222.0,
+        "dataHora": "17/11/2025 13:19"
+      },
+      {
+        "tipo": "Depósito",
+        "valor": 222222.0,
+        "dataHora": "17/11/2025 13:19"
+      },
+      {
+        "tipo": "Pagamento de boleto 22",
+        "valor": -1.0,
+        "dataHora": "17/11/2025 13:19"
+      },
+      {
+        "tipo": "Transferência enviada para CPF 1",
+        "valor": -22.0,
+        "dataHora": "17/11/2025 13:33"
+      },
+      {
+        "tipo": "Compra Débito: rerere",
+        "valor": -4000.0,
+        "dataHora": "17/11/2025 13:38"
+      },
+      {
+        "tipo": "Transferência recebida de CPF 1",
+        "valor": 0.1,
+        "dataHora": "17/11/2025 13:41"
+      }
+    ]
+  },
+  "1": {
+    "cpf": "1",
+    "tipo": "poupanca",
+    "conta": 86892,
+    "titular": "teste",
+    "senha": "1",
+    "saldo": 200.0,
+    "encerrada": false,
+    "poupanca": {
+      "investimento": 22.11,
+      "ultimaAplicacao": "2025-11-17"
+    },
+    "cartaoDebito": {
+      "numero": "6015 2763 7106 3273",
+      "validade": "11/30",
+      "cvv": "188"
+    },
+    "movimentacoes": [
+      {
+        "tipo": "Transferência recebida de CPF 111",
+        "valor": 22.0,
+        "dataHora": "17/11/2025 13:18"
+      },
+      {
+        "tipo": "Transferência recebida de CPF 111",
+        "valor": 222.0,
+        "dataHora": "17/11/2025 13:19"
+      },
+      {
+        "tipo": "Transferência recebida de CPF 111",
+        "valor": 22.0,
+        "dataHora": "17/11/2025 13:33"
+      },
+      {
+        "tipo": "Aplicação em Poupança (Rendimento R$ 0,33)",
+        "valor": -66.0,
+        "dataHora": "17/11/2025 13:39"
+      },
+      {
+        "tipo": "Transferência enviada para CPF 111",
+        "valor": -0.1,
+        "dataHora": "17/11/2025 13:41"
+      },
+      {
+        "tipo": "Aplicação em Poupança (Rendimento R$ 0,33)",
+        "valor": -66.33,
+        "dataHora": "17/11/2025 13:41"
+      },
+      {
+        "tipo": "Resgate de Poupança",
+        "valor": 132.99,
+        "dataHora": "17/11/2025 13:41"
+      },
+      {
+        "tipo": "Saque (Conta Poupança)",
+        "valor": -266.56,
+        "dataHora": "17/11/2025 13:42"
+      },
+      {
+        "tipo": "Depósito",
+        "valor": 222.0,
+        "dataHora": "17/11/2025 13:42"
+      },
+      {
+        "tipo": "Aplicação em Poupança (Rendimento R$ 0,11)",
+        "valor": -22.0,
+        "dataHora": "17/11/2025 13:42"
+      }
+    ]
   }
 }

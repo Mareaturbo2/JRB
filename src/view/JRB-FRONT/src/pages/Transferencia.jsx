@@ -10,21 +10,28 @@ export default function Transferencia() {
   const [valor, setValor] = useState("");
   const [mensagem, setMensagem] = useState("");
 
-  const handleTransferir = async () => {
-    if (!cpfDestino || !valor || valor <= 0) {
-      setMensagem("Preencha todos os campos corretamente!");
-      return;
-    }
+ const handleTransferir = async () => {
+  if (!cpfDestino || !valor || valor <= 0) {
+    setMensagem("Preencha todos os campos corretamente!");
+    return;
+  }
 
-    try {
-      const res = await transferir(cpfOrigem, cpfDestino, parseFloat(valor));
-      setMensagem(res.mensagem || "Transferência realizada com sucesso!");
-      setCpfDestino("");
-      setValor("");
-    } catch (e) {
-      setMensagem("Erro: " + e.message);
-    }
-  };
+  if (cpfDestino === cpfOrigem) {
+    setMensagem("Você não pode transferir para a própria conta!");
+    return;
+  }
+
+  try {
+    const res = await transferir(cpfOrigem, cpfDestino, parseFloat(valor));
+    setMensagem(res.mensagem || "Transferência realizada com sucesso!");
+    window.open("http://localhost:8080/api/comprovantes/ultimo", "_blank");
+    setCpfDestino("");
+    setValor("");
+  } catch (e) {
+    setMensagem("Erro: " + e.message);
+  }
+};
+
 
   return (
     <div className="page">

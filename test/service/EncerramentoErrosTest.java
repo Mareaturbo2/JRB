@@ -15,7 +15,7 @@ public class EncerramentoErrosTest {
     void setup() throws Exception {
         bank = new BankService();
 
-        // Limpando JSON carregado
+        
         java.lang.reflect.Field field = BankService.class.getDeclaredField("contas");
         field.setAccessible(true);
         ((java.util.Map<?, ?>) field.get(bank)).clear();
