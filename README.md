@@ -2,7 +2,8 @@
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)  
 ![React](https://img.shields.io/badge/React-61DBFB?style=for-the-badge&logo=react&logoColor=black)  
-![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow?style=for-the-badge)  
+![Status](https://img.shields.io/badge/Status-Finalizado-brightgreen?style=for-the-badge)
+
 
 ---
 
@@ -223,7 +224,14 @@ npm run dev
 [![Entrega 3](https://img.shields.io/badge/YouTube-Entrega%203-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/watch?v=9pXXATPeGEA)
 
 ## 🐞 Issue / Bug Tracker
+
+### 🟦 Entrega 03
 <img width="1908" height="849" alt="image" src="https://github.com/user-attachments/assets/97ec5527-4cdb-4751-9090-017fd87db59b" />
+
+### 🟩 Entrega 04 — Finalização do Bug Tracker
+<img width="1907" height="825" alt="image" src="https://github.com/user-attachments/assets/94f83d6d-93ba-4f6c-882b-71c047321008" />
+
+
 
 
 
