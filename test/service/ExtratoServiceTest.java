@@ -20,7 +20,7 @@ class ExtratoServiceTest {
         conta = new ContaCorrente(1, "Paulo", "1234", 1000.0);
         extratoService = new ExtratoService();
 
-        // simula transações REAIS do sistema
+        // simula transações reais do sistema
         conta.depositar(300.0);
         conta.sacar(100.0);
     }

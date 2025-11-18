@@ -377,19 +377,19 @@ public class ApiServer {
                 return gson.toJson(Map.of("erro", "Conta não encontrada."));
             }
 
-            // 🔹 Filtro de período opcional (inicio e fim)
+            // filtro de período 
             String inicioStr = req.queryParams("inicio"); // yyyy-MM-dd
             String fimStr = req.queryParams("fim");       // yyyy-MM-dd
 
             List<Movimentacao> movs = conta.getMovimentacoes();
 
-            // 🔹 Evita NullPointer e filtra apenas movimentações válidas
+            //  filtra apenas movimentações válidas
             movs = movs == null ? new ArrayList<>() :
                 movs.stream()
                     .filter(Objects::nonNull)
                     .collect(Collectors.toList());
 
-            // 🔹 Filtro de data, se informado
+            // filtro de data
             if (inicioStr != null && fimStr != null) {
                 DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
                 LocalDate inicio = LocalDate.parse(inicioStr);
@@ -406,7 +406,7 @@ public class ApiServer {
                 }).collect(Collectors.toList());
             }
 
-            // 🔹 Converte para JSON simples e serializável
+            //  converte para json 
                         List<Map<String, Object>> payload = movs.stream()
                             .map(m -> {
                                 Map<String, Object> map = new HashMap<>();
@@ -492,7 +492,7 @@ public class ApiServer {
                 return gson.toJson(Map.of("erro", "Conta não encontrada."));
             }
 
-            // Se o seu modelo possuir getters diretos de cartões, adapte aqui.
+           
             Map<String, Object> out = new HashMap<>();
             try {
                 Object cc = conta.getCartaoCredito();

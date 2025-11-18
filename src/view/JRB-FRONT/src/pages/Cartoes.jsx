@@ -16,18 +16,18 @@ export default function Cartoes() {
   const cpf = usuario?.cpf;
   const tipoConta = (usuario?.tipo || "").toLowerCase(); // "corrente" e "poupanca"
 
-  // estados separados evita um apagar o outro
+ 
   const [credito, setCredito] = useState(null);
   const [debito, setDebito] = useState(null);
   const [temCredito, setTemCredito] = useState(false);
   const [temDebito, setTemDebito] = useState(false);
 
-  // inputs
+ 
   const [descricao, setDescricao] = useState("");
   const [valor, setValor] = useState("");
   const [limite, setLimite] = useState("");
 
-  // ui
+  
   const [mensagem, setMensagem] = useState("");
   const [carregando, setCarregando] = useState(true);
 

@@ -30,7 +30,7 @@ export default function InvestirPoupanca() {
         const dados = await detalhesConta(cpf);
         setSaldo(dados.saldo || 0);
 
-        // Detecta investimento dentro de `poupanca` ou direto
+        
         if (typeof dados.investimento === "number") {
           setInvestimentoAtual(dados.investimento);
         } else if (dados.poupanca?.investimento) {

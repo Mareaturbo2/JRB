@@ -223,7 +223,7 @@ export async function baixarFaturaPDF(cpf, numeroCartao) {
   window.open(`${API_URL}/contas/${cpf}/cartoes/${numeroCartao}/fatura/pdf`, "_blank");
 }
 
-//obter todos os detalhes da conta (tipo, saldo, poupança...)
+//obter todos os detalhes da conta (tipo, saldo, poupança)
 export async function detalhesConta(cpf) {
   const resp = await fetch(`${API_URL}/contas/${cpf}`);
   if (!resp.ok) {
